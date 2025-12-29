@@ -7,6 +7,15 @@
     <meta name="description" content="Résume n'importe quelle vidéo YouTube en secondes avec l'IA" />
     <meta name="author" content="Arslane AI" />
 
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0ea5e9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Arslane AI" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Open Graph -->
     <meta property="og:title" content="Arslane AI - Résumeur de Vidéos YouTube" />
     <meta property="og:description" content="Résume n'importe quelle vidéo YouTube en secondes avec l'IA" />
     <meta property="og:type" content="website" />
@@ -24,5 +33,14 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((reg) => console.log('SW registered'))
+            .catch((err) => console.log('SW failed:', err));
+        });
+      }
+    </script>
   </body>
 </html>

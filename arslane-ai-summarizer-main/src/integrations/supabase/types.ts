@@ -14,7 +14,46 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      video_summaries: {
+        Row: {
+          id: string
+          video_id: string
+          url: string
+          mode: 'quick' | 'detailed'
+          summary: string
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          video_id: string
+          url: string
+          mode: 'quick' | 'detailed'
+          summary: string
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          video_id?: string
+          url?: string
+          mode?: 'quick' | 'detailed'
+          summary?: string
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_summaries_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -5,11 +5,15 @@ import ActionButtons from "@/components/ActionButtons";
 import LoadingState from "@/components/LoadingState";
 import SummaryCard from "@/components/SummaryCard";
 import ErrorMessage from "@/components/ErrorMessage";
+import VideoPreview from "@/components/VideoPreview";
+import UserMenu from "@/components/UserMenu";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 type SummaryMode = "quick" | "detailed";
 
 const Index = () => {
+  const { user } = useAuth();
   const [url, setUrl] = useState("");
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,6 +38,7 @@ const Index = () => {
         body: {
           url: youtubeUrl,
           mode: mode,
+          userId: user?.id, // Send user ID for saving to history
         },
       });
 
@@ -83,11 +88,22 @@ const Index = () => {
         <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-accent/5 blur-3xl" />
       </div>
 
+      {/* User Menu - Top Right */}
+      <div className="absolute top-4 right-4 z-20">
+        <UserMenu />
+      </div>
+
       <main className="relative z-10 container max-w-2xl mx-auto px-4 py-16 md:py-24">
         <Header />
 
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 md:p-8 shadow-xl">
           <URLInput value={url} onChange={setUrl} disabled={loading} />
+
+          {/* Video Preview */}
+          {url.trim() && isValidYouTubeUrl(url) && !loading && !summary && (
+            <VideoPreview url={url} />
+          )}
+
           <ActionButtons
             onQuickSummary={handleQuickSummary}
             onDetailedSummary={handleDetailedSummary}
@@ -110,7 +126,7 @@ const Index = () => {
         {summary && !loading && !error && <SummaryCard summary={summary} />}
 
         <footer className="mt-12 text-center text-sm text-muted-foreground">
-          <p>Propulsé par l'intelligence artificielle ✨</p>
+          <p>Propulsé par l'intelligence artificielle</p>
         </footer>
       </main>
     </div>
