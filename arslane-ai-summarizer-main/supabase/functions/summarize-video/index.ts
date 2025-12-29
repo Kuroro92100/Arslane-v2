@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
+// Environment variables for secure configuration
+const N8N_WEBHOOK_URL = Deno.env.get("N8N_WEBHOOK_URL")
+const N8N_API_KEY = Deno.env.get("N8N_API_KEY")
+
 // YouTube URL validation regex
 const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]+/
 
@@ -80,12 +84,25 @@ serve(async (req) => {
 
     const { url, mode } = validation
 
+    // Verify environment variables are configured
+    if (!N8N_WEBHOOK_URL || !N8N_API_KEY) {
+      console.error("Missing required environment variables: N8N_WEBHOOK_URL or N8N_API_KEY")
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Service configuration error. Please contact support."
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
+
     console.log(`Processing video summary request`)
 
-    const response = await fetch("https://n8n.srv1207531.hstgr.cloud/webhook/arslane-youtube", {
+    const response = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-API-Key": N8N_API_KEY,
       },
       body: JSON.stringify({ url, mode }),
     })
