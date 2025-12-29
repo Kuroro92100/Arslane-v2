@@ -122,12 +122,13 @@ async function getFromDatabaseCache(videoId: string, mode: string): Promise<unkn
   }
 }
 
-// Save to database cache
-async function saveToDatabaseCache(videoId: string, url: string, mode: string, summary: string) {
+// Save to database cache (and user history if userId provided)
+async function saveToDatabaseCache(videoId: string, url: string, mode: string, summary: string, userId?: string | null) {
   const supabase = getSupabaseClient()
   if (!supabase) return
 
   try {
+    // Always save to anonymous cache (for faster responses)
     await supabase
       .from('video_summaries')
       .upsert({
@@ -135,10 +136,28 @@ async function saveToDatabaseCache(videoId: string, url: string, mode: string, s
         url,
         mode,
         summary,
+        user_id: null, // Anonymous cache entry
         created_at: new Date().toISOString()
       }, {
-        onConflict: 'video_id,mode'
+        onConflict: 'video_id,mode',
+        ignoreDuplicates: true
       })
+
+    // If user is logged in, also save to their personal history
+    if (userId) {
+      await supabase
+        .from('video_summaries')
+        .upsert({
+          video_id: videoId,
+          url,
+          mode,
+          summary,
+          user_id: userId,
+          created_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,video_id,mode'
+        })
+    }
   } catch (error) {
     log('warn', 'Failed to save to database cache', { error: String(error) })
   }
@@ -257,6 +276,7 @@ serve(async (req) => {
     }
 
     const { url, mode } = validation
+    const userId = (body as Record<string, unknown>).userId as string | undefined
     const videoId = extractVideoId(url)
 
     if (!videoId) {
@@ -353,8 +373,8 @@ serve(async (req) => {
     // Cache the result
     if (data.success && data.summary) {
       setToMemoryCache(cacheKey, data.summary)
-      saveToDatabaseCache(videoId, url, mode, data.summary) // Non-blocking
-      log('info', 'Summary cached', { requestId, videoId, mode })
+      saveToDatabaseCache(videoId, url, mode, data.summary, userId) // Non-blocking
+      log('info', 'Summary cached', { requestId, videoId, mode, userId: userId || 'anonymous' })
     }
 
     // Sanitize response
