@@ -1,19 +1,30 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Mail, Lock, ArrowLeft } from "lucide-react";
+import { BookOpen, Mail, Lock, ArrowLeft, User } from "lucide-react";
 import { toast } from "sonner";
 
 const AuthPage = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'register';
+
+  const [isSignUp, setIsSignUp] = useState(initialTab);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+
+  // Rediriger si déjà connecté
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +32,11 @@ const AuthPage = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password);
+        if (!username.trim()) {
+          toast.error("Le nom d'utilisateur est requis");
+          return;
+        }
+        const { error } = await signUp(email, password, { username: username.trim() });
         if (error) {
           toast.error(error.message);
         } else {
@@ -49,11 +64,11 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-b from-background to-muted">
       {/* Background glow effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-accent/10 blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-md px-4">
@@ -66,19 +81,17 @@ const AuthPage = () => {
           Retour
         </Button>
 
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-8 shadow-xl">
+        <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 shadow-xl">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
-                <Sparkles className="w-6 h-6 text-primary" />
+                <BookOpen className="w-6 h-6 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">
-                <span className="gradient-text">Arslane AI</span>
-              </h1>
+              <h1 className="text-2xl font-bold">MangaTrack</h1>
             </div>
             <p className="text-muted-foreground">
-              {isSignUp ? "Crée ton compte" : "Connecte-toi"}
+              {isSignUp ? "Crée ton compte pour suivre tes mangas" : "Connecte-toi à ton compte"}
             </p>
           </div>
 
@@ -120,6 +133,24 @@ const AuthPage = () => {
 
           {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="username">Nom d'utilisateur</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="ton_pseudo"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="pl-10"
+                    required={isSignUp}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -155,7 +186,7 @@ const AuthPage = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-primary to-accent"
+              className="w-full"
               disabled={loading}
             >
               {loading ? "Chargement..." : isSignUp ? "Créer mon compte" : "Se connecter"}
@@ -168,7 +199,7 @@ const AuthPage = () => {
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="ml-1 text-primary hover:underline"
+              className="ml-1 text-primary hover:underline font-medium"
             >
               {isSignUp ? "Se connecter" : "S'inscrire"}
             </button>

@@ -1,11 +1,11 @@
 {
-  "name": "Arslane AI - Résumeur YouTube",
-  "short_name": "Arslane AI",
-  "description": "Résume n'importe quelle vidéo YouTube en secondes avec l'IA",
+  "name": "MangaTrack - Suivez vos mangas",
+  "short_name": "MangaTrack",
+  "description": "Suivez vos mangas, notez vos lectures, partagez vos critiques et découvrez de nouveaux titres",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0ea5e9",
+  "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -21,7 +21,7 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": ["entertainment", "social", "books"],
   "lang": "fr",
   "dir": "ltr"
 }
